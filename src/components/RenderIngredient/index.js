@@ -1,118 +1,54 @@
 import React, { useState, useEffect } from "react";
 import { useStoreContext } from "../../utils/GlobalState";
-import { convertMeasure } from "../../utils/helpers"
+import { Ingredient } from "../../utils/Ingredient";
 
 
-function RenderIngredient({ name, amounts, measSystem }) {
+function RenderIngredient({ data }) {
     const [ state ] = useStoreContext();
+    const unit = state.globalUnit;
+    const system = state.globalSystem;
 
-    const [ingredientState, setIngredientState] = useState({
-        measSystem: measSystem,
-        submeasure: amounts[measSystem].submeasure,
-        newMeasurement: false
-    });
+    const ingredient = new Ingredient(data);
+    const name = ingredient.name;
+    const defaultUnit = ingredient[unit].default;
+    
+    const [localUnit, setLocalUnit] = useState(defaultUnit);
 
-    console.log(measSystem, ingredientState);
+    const returnMeasurement = () => {
+        const options = Array.from(document.getElementById('measurementSelect').firstChild.options);
+        const optionsIncludesDefault = options.some(option => option.value === defaultUnit);
 
-    const { value, submeasure } = amounts[measSystem];
-
-    const ingredientMeasurement = getIngredientMeasurement();
-    const ingredientMeasurementString = convertMeasurementToString(ingredientMeasurement);
-
-    function getExistingMeasurement(obj) {
-        const existingMeasurements = [];
-        Object.entries(obj).forEach(([key, value]) => {if (value.value) { existingMeasurements.push([key, value]) }});
-        if (existingMeasurements.length > 1) {
-
-        }
-        return existingMeasurements[0];
-    };
-
-    function getIngredientMeasurement() {
-
-        //If global state measurement system has been changed, set submeasure to no "newMeasurement" and return value or false
-        if (!value && !state.autoConvert && ingredientState.newMeasurement) {
-            setIngredientState({
-                measSystem: measSystem,
-                submeasure: amounts[measSystem].submeasure,
-                newMeasurement: false
-            });
-            
-            return value;
-        } 
-
-        //If auto convert is on, and no preexisting value, convert to new measSystem using convertMeasure
-        else if (!value && state.autoConvert && (!ingredientState.newMeasurement || ingredientState.measSystem !== measSystem)) {
-            const existingMeasurement = getExistingMeasurement(amounts);
-
-            const existingSubmeasure = existingMeasurement[1].submeasure;
-            const existingValue = existingMeasurement[1].value;
-            const existingSystem = existingMeasurement[0];
-
-            console.log(measSystem);
-            
-            const { newMeasurement, newSubmeasure } = convertMeasure([existingSystem, existingSubmeasure], [measSystem], existingValue);
-
-            setIngredientState({
-                measSystem: measSystem,
-                submeasure: newSubmeasure,
-                newMeasurement: newMeasurement
-            });
-
-            return newMeasurement;
+        if (optionsIncludesDefault) {
+            const string = ingredient.default(unit);
+            return string;
         }
 
-        //If there is a saved value and nothing has been changed, return saved value
-        else if (value){
-            console.log(measSystem);
-            if (measSystem !== ingredientState.measSystem) {
-                setIngredientState({
-                    measSystem: measSystem,
-                    submeasure: amounts[measSystem].submeasure,
-                    newMeasurement: false
-                });
-            }
-            return(value);
-        }
-
-        //If submeasure has changed return new measurement
-        else if (ingredientState.newMeasurement) {
-            return(ingredientState.newMeasurement);
-        } 
-
-        else {
-            if (measSystem !== ingredientState.measSystem) {
-                setIngredientState({
-                    measSystem: measSystem,
-                    submeasure: amounts[measSystem].submeasure,
-                    newMeasurement: false
-                });
-            }
-            return(false);
-        }
     }
 
-    function handleSubmeasureChange(event) {
-        const newSubmeasure = event.target.value;
+    console.log(returnMeasurement());
 
-        const existingMeasurement = getExistingMeasurement(amounts);
-        const existingSubmeasure = existingMeasurement[1].submeasure;
-        const existingValue = existingMeasurement[1].value;
-        const existingSystem = existingMeasurement[0];
-
-        const { newMeasurement } = convertMeasure([existingSystem, existingSubmeasure], [measSystem, newSubmeasure], existingValue);
-        setIngredientState({
-            measSystem: measSystem,
-            submeasure: newSubmeasure,
-            newMeasurement: newMeasurement 
-        }) 
+    //format pounds for display as string
+    const displayPounds = (measurement) => {
+        const pounds = parseInt(measurement);
+        const remainder = measurement % 1;
+        const ounces = (remainder*16).toFixed(1);
+        
+        if (remainder) {
+            return `${pounds}: ${ounces}`;
+        }
+        else if (measurement) {
+            return measurement;
+        } 
+        else {
+            return false;
+        }
     }
 
     //convert measurement number to string, formatted with commas and rounded to 0, 1 or 2 decimal points
-    function convertMeasurementToString(measurement) {
+    const convertMeasurementToString = (measurement) => {
         if (measurement) {
             //if measurement is in pounds send to displayPounds function for further formatting
-            if (ingredientState.submeasure === 'pounds') {
+            if (measurement) {
                 return displayPounds(measurement);
             }
             else {
@@ -123,74 +59,60 @@ function RenderIngredient({ name, amounts, measSystem }) {
             //if no measurement
             return false;
         }
-
-        //format pounds for display as string
-        function displayPounds(measurement) {
-            const poundsInt = parseInt(measurement).toLocaleString();
-            const remainder = measurement % 1;
-            const remainderAsOunces = (remainder*16).toFixed(1);
-            
-            if (remainder) {
-                return `${poundsInt}: ${remainderAsOunces}`;
-            }
-            else if (measurement) {
-                return measurement;
-            } 
-            else {
-                return false;
-            }
-        }
     }
+
+    const handleUnitChange = event => {
+        const value = event.target.value;
+        setLocalUnit(value);
+        console.log(localUnit)
+    }
+
+    const measurement = returnMeasurement();
 
     return(
         <div>
             <div>{name}</div>
-
             <div>
-                { ingredientMeasurement 
-                    ? (<div>{ingredientMeasurementString}</div>)
+                {  measurement
+                    ? (<div>{measurement}</div>)
                     : (<form>
                         <input type="text" placeholder="No Amt."/>
                     </form>)
                 }        
             </div>
+            <div id='unitSelect' onChange={handleUnitChange}>
+                {(system === 'us') && ((unit === 'volume') ?
+                    (<select defaultValue={ingredient[unit].default}>
+                        <option data-factor="3785" value="gallons">G</option>
+                        <option data-factor="946" value="quarts">Q</option>
+                        <option data-factor="240" value="cups">C</option>
+                        <option data-factor="14.787" value="tablespoons">T</option>
+                        <option data-factor="4.929" value="teaspoons">t</option>
+                        <option data-factor="29.574" value="fluidOunces">fl. oz.</option>
+                    </select>) :
+                    (
+                    <select defaultValue={ingredient[unit].default}>
+                        <option data-factor="454" value="pounds">lbs.</option>
+                        <option data-factor="28.35" value="ounces">oz.</option>
+                    </select>
+                    )
+                )}
 
-            
+                {(system=== 'metric') && ((system === 'weight') ?
+                    (<select defaultValue={ingredient[unit].default}>
+                        <option data-factor="1000" value="liters">L</option>
+                        <option data-factor="1" value="milliliters">mL</option>
+                    </select>
+                    ) :
 
-            <form id={`${name}MeasurementSelect`} onChange={handleSubmeasureChange}>
-                        {(measSystem === 'us_volume') && (
-                        <select className="imperialVolumeSelect" defaultValue={ingredientState.submeasure}>
-                            <option value="gallons">G</option>
-                            <option value="quarts">Q</option>
-                            <option value="cups">C</option>
-                            <option value="tablespoons">T</option>
-                            <option value="teaspoons">t</option>
-                            <option value="fluid-ounces">fl. oz.</option>
-                        </select>
-                        )}
-                        
-                        {(measSystem === 'us_weight') && (
-                        <select className="imperialWeightSelect" defaultValue={ingredientState.submeasure}>
-                            <option value="pounds">lbs.</option>
-                            <option value="ounces">oz.</option>
-                        </select>
-                        )}
-                        {/* if Metric */}
-                        {(measSystem === 'metric_volume') && (
-                        <select className="metricVolumeSelect" defaultValue={ingredientState.submeasure}>
-                            <option value="liters">L</option>
-                            <option value="milliliters">mL</option>
-                        </select>
-                        )}
-
-                        {(measSystem === 'metric_weight') && (
-                        <select className="metricWeightSelect" defaultValue={ingredientState.submeasure}>
-                            <option value="kilograms">kg</option>
-                            <option value="grams">g</option>
-                            <option value="milligrams">mg</option>
-                        </select>
-                        )}
-                    </form>    
+                    (<select defaultValue={ingredient[unit].default}>
+                        <option data-factor="1000" value="kilograms">kg</option>
+                        <option data-factor="1" value="grams">g</option>
+                        <option data-factor=".001" value="milligrams">mg</option>
+                    </select>
+                    )   
+                )}
+            </div>
         </div>
     )
 }

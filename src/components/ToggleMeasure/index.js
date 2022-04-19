@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { useStoreContext } from "../../utils/GlobalState";
-import { CHANGE_MEASURE_TYPE, CHANGE_MEASURE_SYSTEM, TOGGLE_AUTO_CONVERT } from '../../utils/actions';
+import { CHANGE_GLOBAL_UNIT, CHANGE_GLOBAL_SYSTEM, TOGGLE_AUTO_CONVERT } from '../../utils/actions';
 
 function ToggleMeasure() {
     const [ state, dispatch ] = useStoreContext();
 
     //Each time form is changed, update GlobalState
     //Weight or Volume
-    function handleTypeChange(event) {
+    function handleUnitChange(event) {
         const value = event.target.value;
         dispatch({
-            type: CHANGE_MEASURE_TYPE,
-            measurementType: value
+            type: CHANGE_GLOBAL_UNIT,
+            globalUnit: value
         });
     }
 
@@ -19,8 +19,8 @@ function ToggleMeasure() {
     function handleSystemChange(event) {
         const value = event.target.value;
         dispatch({
-            type: CHANGE_MEASURE_SYSTEM,
-            measurementSystem: value
+            type: CHANGE_GLOBAL_SYSTEM,
+            globalSystem: value
         }); 
     }
 
@@ -41,7 +41,7 @@ function ToggleMeasure() {
                 <option value="us">US</option>
             </select>
             {/* type */}
-            <select onChange={handleTypeChange}>
+            <select onChange={handleUnitChange}>
                     <option value="weight">WEIGHT</option>
                     <option value="volume">VOLUME</option>
             </select>

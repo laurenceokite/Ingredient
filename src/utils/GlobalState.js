@@ -8,8 +8,8 @@ const { Provider } = StoreContext;
 const StoreProvider = ({ value = [], ...props }) => {
 	// Set default state here.
 	const [state, dispatch] = useIngredientReducer({
-		measurementType: 'weight',
-        measurementSystem: 'metric',
+		globalUnit: 'weight',
+        globalSystem: 'metric',
         autoConvert: false
 	  });
 	return <Provider value={[state, dispatch]} {...props} />;

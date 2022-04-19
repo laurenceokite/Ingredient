@@ -1,22 +1,22 @@
 import { useReducer } from 'react';
 
 import {
-    CHANGE_MEASURE_SYSTEM,
-    CHANGE_MEASURE_TYPE,
+    CHANGE_GLOBAL_SYSTEM,
+    CHANGE_GLOBAL_UNIT,
     TOGGLE_AUTO_CONVERT
 } from './actions'
 
 export const reducer = (state, action) => {
     switch (action.type) {
-        case CHANGE_MEASURE_TYPE:
+        case CHANGE_GLOBAL_UNIT:
             return {
                 ...state,
-                measurementType: action.measurementType
+                globalType: action.globalType
             }
-        case CHANGE_MEASURE_SYSTEM:
+        case CHANGE_GLOBAL_SYSTEM:
             return {
                 ...state,
-                measurementSystem: action.measurementSystem
+                globalSystem: action.globalSystem
             }
         case TOGGLE_AUTO_CONVERT:
             return {

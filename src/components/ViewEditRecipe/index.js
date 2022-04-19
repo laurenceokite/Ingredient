@@ -2,105 +2,67 @@ import React, { useEffect, useState } from 'react';
 import ToggleMeasure from '../ToggleMeasure';
 import RenderIngredient from '../RenderIngredient';
 import { useStoreContext } from "../../utils/GlobalState";
+import { Ingredient } from '../../utils/Ingredient';
 
 function ViewEditRecipe() {
-    const [ state, dispatch ] = useStoreContext();
+    const [ state ] = useStoreContext();
 
-    const [addIngredientState, setAddIngredientState] = useState({ 
-        //This is how data will be structured in each ingredient
-        ingredient: '',
-            amounts: {
-                metric_weight:
-                {
-                    value: '',
-                    submeasure: 'grams'
-                },
-                us_weight:
-                {
-                    value: '',
-                    submeasure: 'ounces'
-                },
-                metric_volume:
-                {
-                    value: '',
-                    submeasure: 'milliliters'
-                },
-                us_volume:
-                {
-                    value: '',
-                    submeasure: 'cups'
-                }
-            }
-    
+    const [formState, setFormState] = useState({ 
+        name: '',
+        amount: ''
     });
 
     //recipe name and array of ingredients
     const [recipeState, setRecipeState] = useState({ 
-        recipe: '', 
+        name: '', 
         ingredients: []
     });
 
-    //'measSystem' tells us what measurement to display based on which options are selected
-    const measSystem = `${state.measurementSystem}_${state.measurementType}`;
-    const [previousMeasSystem, setPreviousMeasSystem] = useState(measSystem);
-    
-
-
     // Push new ingredient to 'ingredients' array
-    function addIngredient(event) {
+    const addIngredient = (event) => {
         event.preventDefault();
-        //convert value string to floating-point number, formatted to six decimal points
-        const valueParsed = parseFloat(addIngredientState.amounts[measSystem].value).toFixed(6);
 
-        //Update addIngredientState
-        setAddIngredientState({
-            ...addIngredientState,
-            amount: {
-                ...addIngredientState.amounts,
-                [measSystem]:
+        const select = document.getElementById('measurementSelect').firstChild
+        console.log(select);
+        const unit = select.value;
+        const factor = select.options[select.selectedIndex].dataset.factor;
+        const amount = parseFloat(formState.amount);
+
+        const standardizedValue = parseFloat(amount * factor);
+
+        console.log({
+            //Add ingredient to array of objects in recipeState
+            ...recipeState,
+            ingredients: [
+                ...recipeState.ingredients, 
                 {
-                    value: valueParsed,
-                    ...addIngredientState.amounts[measSystem]
+                    name: formState.name,
+                    [state.measurementUnit]: {
+                        value: standardizedValue,
+                        default: unit
+                    }
                 }
-            }
+            ]
         });
 
         setRecipeState({
             //Add ingredient to array of objects in recipeState
             ...recipeState,
-            ingredients: [...recipeState.ingredients, {
-                ingredient: addIngredientState.ingredient,
-                    amounts: {
-                        ...addIngredientState.amounts
-                    }  
-            }]
-        });
-
-        // Reset ingredient input form to original state
-        setAddIngredientState({
-            ingredient: '',
-            amounts: {
-                metric_weight:
+            ingredients: [
+                ...recipeState.ingredients, 
                 {
-                    value: '',
-                    submeasure: 'grams'
-                },
-                us_weight:
-                {
-                    value: '',
-                    submeasure: 'ounces'
-                },
-                metric_volume:
-                {
-                    value: '',
-                    submeasure: 'milliliters'
-                },
-                us_volume:
-                {
-                    value: '',
-                    submeasure: 'cups'
+                    name: formState.name,
+                    [state.measurementUnit]: {
+                        value: standardizedValue,
+                        default: unit
+                    }
                 }
-            }
+            ]
+        });
+        // Reset ingredient input form to original state
+        setFormState({
+            name: '',
+            amount: ''
         });
     };
 
@@ -108,60 +70,22 @@ function ViewEditRecipe() {
     //Ingredient Input
     const handleNameChange = event => {
         const { value } = event.target;
-        setAddIngredientState({
-          ...addIngredientState,
-          ingredient: value
+        setFormState({
+          ...formState,
+          name: value
         });
     };
+
     //Amount Input
     const handleAmountChange = event => {
         const { value } = event.target;
-        const submeasure = document.getElementById('measurementSelect').firstChild.value;
-        
-        setAddIngredientState({
-            ...addIngredientState,
-            amounts: {
-                ...addIngredientState.amounts,
-                [measSystem]:
-                {
-                    value: value,
-                    submeasure: submeasure
-                }
-            }
+        const select = document.getElementById('measurementSelect').firstChild
+
+        setFormState({
+            ...formState,
+            amount: value
         });
     };
-
-    //If global measure system has been changed, clear state and move amount to new measure system
-    useEffect(()=>{
-        const submeasure = document.getElementById('measurementSelect').firstChild.value;
-        const ingredientAmtInput = document.getElementById('ingredientAmtInput').value;
-
-        if (measSystem !== previousMeasSystem) {
-            if (ingredientAmtInput) {
-                const previousAmount = addIngredientState.amounts[previousMeasSystem].value;
-                setAddIngredientState({
-                    ...addIngredientState,
-                    amount: {
-                        ...addIngredientState.amount,
-                        [previousMeasSystem]:
-                        {
-                            value: '',
-                            submeasure: addIngredientState.amount[previousMeasSystem].submeasure
-                        },
-                        [measSystem]:
-                        {
-                            value: previousAmount,
-                            submeasure: submeasure
-                        }
-                    }
-                });
-                setPreviousMeasSystem(measSystem);
-            } else {
-                setPreviousMeasSystem(measSystem);
-            }
-        }
-
-    }, [previousMeasSystem, measSystem, addIngredientState]);
 
     return(
         <div>
@@ -171,7 +95,7 @@ function ViewEditRecipe() {
             {/* Map array of ingredients */}
             <div>
                     {recipeState.ingredients.map(ingredient => (
-                        <RenderIngredient key={ingredient.ingredient} name={ingredient.ingredient} amounts={ingredient.amounts} measSystem={measSystem}/>
+                        <RenderIngredient key={ingredient.name} data={ingredient}/>
                     ))}
             </div>
 
@@ -182,7 +106,7 @@ function ViewEditRecipe() {
                             placeholder="Ingredient" 
                             id='ingredientNameInput'
                             name='ingredient'
-                            value={addIngredientState.ingredient}
+                            value={formState.name}
                             autoComplete="off" 
                             onChange={handleNameChange}/>
 
@@ -190,46 +114,43 @@ function ViewEditRecipe() {
                             placeholder="Amount"
                             id='ingredientAmtInput'
                             name='amount'
-                            value={addIngredientState.amounts[measSystem].value}
+                            value={formState.amount}
                             onChange={handleAmountChange}
                             autoComplete="off"/>
                     </div>
 
                     {/* Measurement Select, Displays each set of options conditionally based on state */}
-
-                    {/* if Imperial */}
                     <div id='measurementSelect'>
-                        {(measSystem === 'us_volume') && (
-                        <select className="imperialVolumeSelect" defaultValue='cups'>
-                            <option value="gallons">G</option>
-                            <option value="quarts">Q</option>
-                            <option value="cups">C</option>
-                            <option value="tablespoons">T</option>
-                            <option value="teaspoons">t</option>
-                            <option value="fluid_ounces">fl. oz.</option>
-                        </select>
+                        {(state.measurementSystem === 'us') && ((state.measurementUnit === 'volume') ?
+                            (<select defaultValue='cups'>
+                                <option data-factor="3785" value="gallons">G</option>
+                                <option data-factor="946" value="quarts">Q</option>
+                                <option data-factor="240" value="cups">C</option>
+                                <option data-factor="14.787" value="tablespoons">T</option>
+                                <option data-factor="4.929" value="teaspoons">t</option>
+                                <option data-factor="29.574" value="fluid_ounces">fl. oz.</option>
+                            </select>) :
+                            (
+                            <select defaultValue="ounces">
+                                <option data-factor="454" value="pounds">lbs.</option>
+                                <option data-factor="28.35" value="ounces">oz.</option>
+                            </select>
+                            )
                         )}
-                        
-                        {(measSystem === 'us_weight') && (
-                        <select className="imperialWeightSelect" defaultValue="ounces">
-                            <option value="pounds">lbs.</option>
-                            <option value="ounces">oz.</option>
-                        </select>
-                        )}
-                        {/* if Metric */}
-                        {(measSystem === 'metric_volume') && (
-                        <select className="metricVolumeSelect" defaultValue="milliliters">
-                            <option value="liters">L</option>
-                            <option value="milliliters">mL</option>
-                        </select>
-                        )}
+        
+                       {(state.measurementSystem === 'metric') && ((state.measurementSystem === 'weight') ?
+                            (<select defaultValue="milliliters">
+                                <option data-factor="1000" value="liters">L</option>
+                                <option data-factor="1" value="milliliters">mL</option>
+                            </select>
+                            ) :
 
-                        {(measSystem === 'metric_weight') && (
-                        <select className="metricWeightSelect" defaultValue="grams">
-                            <option value="kilograms">kg</option>
-                            <option value="grams">g</option>
-                            <option value="milligrams">mg</option>
-                        </select>
+                            (<select defaultValue="grams">
+                                <option data-factor="1000" value="kilograms">kg</option>
+                                <option data-factor="1" value="grams">g</option>
+                                <option data-factor=".001" value="milligrams">mg</option>
+                            </select>
+                            )   
                         )}
                     </div> 
                     {/* Add Ingredient Button */}
