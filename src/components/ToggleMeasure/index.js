@@ -13,6 +13,7 @@ function ToggleMeasure() {
             type: CHANGE_GLOBAL_UNIT,
             globalUnit: value
         });
+        console.log(state, value);
     }
 
     //Metric or Imperial

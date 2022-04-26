@@ -1,49 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import ToggleMeasure from '../ToggleMeasure';
 import RenderIngredient from '../RenderIngredient';
 import { useStoreContext } from "../../utils/GlobalState";
-import { Ingredient } from '../../utils/Ingredient';
+import { relativeValues } from "../RenderIngredient/relativeValues";
 
 function ViewEditRecipe() {
     const [ state ] = useStoreContext();
 
+    const {...currentUnits} = relativeValues[state.globalSystem][state.globalUnit];
+    const selected = () => {
+        for (const [key, value] of Object.entries(currentUnits)) {
+            if (currentUnits[key].selected) {
+                return {
+                    initUnit: key,
+                    initFactor: currentUnits[key].value
+                };
+            } 
+        }
+    }
+    const { initUnit, initFactor } = selected();
+
     const [formState, setFormState] = useState({ 
         name: '',
-        amount: ''
+        amount: false,
+        unit: initUnit,
+        factor: initFactor
     });
 
     //recipe name and array of ingredients
     const [recipeState, setRecipeState] = useState({ 
         name: '', 
-        ingredients: []
+        ingredients: [],
+        globalState: {}
     });
 
     // Push new ingredient to 'ingredients' array
     const addIngredient = (event) => {
         event.preventDefault();
 
-        const select = document.getElementById('measurementSelect').firstChild
-        console.log(select);
-        const unit = select.value;
-        const factor = select.options[select.selectedIndex].dataset.factor;
-        const amount = parseFloat(formState.amount);
-
-        const standardizedValue = parseFloat(amount * factor);
-
-        console.log({
-            //Add ingredient to array of objects in recipeState
-            ...recipeState,
-            ingredients: [
-                ...recipeState.ingredients, 
-                {
-                    name: formState.name,
-                    [state.measurementUnit]: {
-                        value: standardizedValue,
-                        default: unit
-                    }
-                }
-            ]
-        });
+        const standardVal = formState.amount * formState.factor;
 
         setRecipeState({
             //Add ingredient to array of objects in recipeState
@@ -52,9 +47,9 @@ function ViewEditRecipe() {
                 ...recipeState.ingredients, 
                 {
                     name: formState.name,
-                    [state.measurementUnit]: {
-                        value: standardizedValue,
-                        default: unit
+                    [state.globalUnit]: {
+                        value: standardVal,
+                        default: formState.unit
                     }
                 }
             ]
@@ -62,29 +57,28 @@ function ViewEditRecipe() {
         // Reset ingredient input form to original state
         setFormState({
             name: '',
-            amount: ''
+            amount: false,
+            unit: initUnit,
+            factor: initFactor
         });
     };
 
-    // Each time text is entered to input, update formState
-    //Ingredient Input
-    const handleNameChange = event => {
-        const { value } = event.target;
+    const handleChange = event => {
+        const { value, name } = event.target;
+
         setFormState({
           ...formState,
-          name: value
+          [name]: value
         });
-    };
 
-    //Amount Input
-    const handleAmountChange = event => {
-        const { value } = event.target;
-        const select = document.getElementById('measurementSelect').firstChild
-
-        setFormState({
-            ...formState,
-            amount: value
-        });
+        if (name === 'unit') {
+            const index = event.target.options.selectedIndex;
+            const options = event.target.options
+            setFormState({
+                ...formState,
+                factor: options[index].dataset.factor
+            });
+        }
     };
 
     return(
@@ -95,7 +89,7 @@ function ViewEditRecipe() {
             {/* Map array of ingredients */}
             <div>
                     {recipeState.ingredients.map(ingredient => (
-                        <RenderIngredient key={ingredient.name} data={ingredient}/>
+                        <RenderIngredient key={ingredient.name} data={ingredient} currentUnits={currentUnits}/>
                     ))}
             </div>
 
@@ -105,53 +99,30 @@ function ViewEditRecipe() {
                         <input type="text" 
                             placeholder="Ingredient" 
                             id='ingredientNameInput'
-                            name='ingredient'
+                            name='name'
                             value={formState.name}
                             autoComplete="off" 
-                            onChange={handleNameChange}/>
+                            onChange={handleChange}/>
 
                         <input type="number" 
                             placeholder="Amount"
                             id='ingredientAmtInput'
                             name='amount'
                             value={formState.amount}
-                            onChange={handleAmountChange}
+                            onChange={handleChange}
                             autoComplete="off"/>
                     </div>
 
                     {/* Measurement Select, Displays each set of options conditionally based on state */}
                     <div id='measurementSelect'>
-                        {(state.measurementSystem === 'us') && ((state.measurementUnit === 'volume') ?
-                            (<select defaultValue='cups'>
-                                <option data-factor="3785" value="gallons">G</option>
-                                <option data-factor="946" value="quarts">Q</option>
-                                <option data-factor="240" value="cups">C</option>
-                                <option data-factor="14.787" value="tablespoons">T</option>
-                                <option data-factor="4.929" value="teaspoons">t</option>
-                                <option data-factor="29.574" value="fluid_ounces">fl. oz.</option>
-                            </select>) :
-                            (
-                            <select defaultValue="ounces">
-                                <option data-factor="454" value="pounds">lbs.</option>
-                                <option data-factor="28.35" value="ounces">oz.</option>
-                            </select>
-                            )
-                        )}
-        
-                       {(state.measurementSystem === 'metric') && ((state.measurementSystem === 'weight') ?
-                            (<select defaultValue="milliliters">
-                                <option data-factor="1000" value="liters">L</option>
-                                <option data-factor="1" value="milliliters">mL</option>
-                            </select>
-                            ) :
-
-                            (<select defaultValue="grams">
-                                <option data-factor="1000" value="kilograms">kg</option>
-                                <option data-factor="1" value="grams">g</option>
-                                <option data-factor=".001" value="milligrams">mg</option>
-                            </select>
-                            )   
-                        )}
+                        <select onChange={handleChange} name='unit'>
+                            {Object.entries(currentUnits).map(([key, obj]) => (
+                                <option data-factor={obj.value} 
+                                    value={key} 
+                                    key={key} 
+                                    selected={obj.selected}>{obj.abbrev}</option>
+                                ))}
+                        </select>
                     </div> 
                     {/* Add Ingredient Button */}
                     <div>

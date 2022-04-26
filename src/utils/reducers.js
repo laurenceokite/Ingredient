@@ -11,7 +11,7 @@ export const reducer = (state, action) => {
         case CHANGE_GLOBAL_UNIT:
             return {
                 ...state,
-                globalType: action.globalType
+                globalUnit: action.globalUnit
             }
         case CHANGE_GLOBAL_SYSTEM:
             return {
