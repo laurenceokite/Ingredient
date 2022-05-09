@@ -1,6 +1,6 @@
 import { StoreProvider } from './utils/GlobalState';
 
-import ViewEditRecipe from "./components/ViewEditRecipe";
+import ViewEditRecipe from "./components/Recipe";
 
 function App() {
 

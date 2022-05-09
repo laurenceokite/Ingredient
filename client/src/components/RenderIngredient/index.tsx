@@ -1,50 +1,47 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import UnitSelect from "../UnitSelect";
-import { useStoreContext, GlobalSystems, GlobalUnits, KeyOfIngredient } from "../../utils/GlobalState";
-import { Ingredient, UnitInterface } from "../ViewEditRecipe/Ingredient";
+import { useStoreContext } from "../../utils/GlobalState";
+import { Ingredient, UnitInterface } from "../Recipe/Ingredient";
+import { Recipe } from "../Recipe/Recipe";
 import './index.css';
 
 interface RenderIngredientInterface {
-    data: Ingredient,
+    ingredient: Ingredient,
+    recipe: Recipe,
     currentUnits: UnitInterface[],
 }
 
-const RenderIngredient = ({ data , currentUnits }: RenderIngredientInterface) => {
+const RenderIngredient = ({ ingredient, recipe, currentUnits }: RenderIngredientInterface) => {
     const [ state ] = useStoreContext();
-    const [ingredient, setIngredient] = useState({});
+    const [ingredientState, setIngredientState] = useState({});
 
-    const globalSystem: GlobalSystems = state.globalSystem;
-    const globalUnit: GlobalUnits = state.globalUnit;
-
-    //this is the state as a key of Ingredient object
-    const keyOfIngredient: KeyOfIngredient = `${globalSystem}_${globalUnit}`;
-
-    let thisUnit = data.returnSelected(keyOfIngredient).unit;
-    let thisValue = data.returnSelected(keyOfIngredient).value;
+    console.log(ingredient, recipe, currentUnits);
+    let thisUnit = ingredient.returnSelected(recipe.state).unit;
+    let thisValue = ingredient.returnSelected(recipe.state).value;
 
     useRef(() => {
-        thisUnit = data.returnSelected(keyOfIngredient).unit;
-        thisValue = data.returnSelected(keyOfIngredient).value;
+        thisUnit = ingredient.returnSelected(recipe.state).unit;
+        thisValue = ingredient.returnSelected(recipe.state).value;
     });
 
     const handleChangeUnit = (event: React.FormEvent): void => {
         const { value } = event.target as HTMLFormElement;
 
-        data.updateSelected(keyOfIngredient, value);
-        setIngredient({}); // Hack to re render ingredient.. 
+        ingredient.updateSelected(recipe.state, value);
+        setIngredientState({}); // Hack to re render ingredient.. 
     }
 
     const handleChangeValue = (event: React.FormEvent): void => {
         const { value } = event.target as HTMLFormElement;
 
-        data.updateValue(keyOfIngredient, thisUnit, value);
-        setIngredient({}); // Hack to re render ingredient.. 
+        ingredient.updateValue(recipe.state, thisUnit, value);
+        setIngredientState({}); // Hack to re render ingredient.. 
     }
     
     return(
         <tbody>
              <tr>
-                <td className="ingredient-name">{data.name}</td>
+                <td className="ingredient-name">{ingredient.name}</td>
                 <td className="ingredient-measurement">
                     <form>
                         <input 
@@ -57,10 +54,10 @@ const RenderIngredient = ({ data , currentUnits }: RenderIngredientInterface) =>
                 </td>
                 <td id='unitSelect' className="unit-select" onChange={handleChangeUnit}>
                     <UnitSelect 
-                        ingredient={data}
+                        ingredient={ingredient}
                         currentUnits={currentUnits}
-                        keyOfIngredient={keyOfIngredient}
-                        selectedUnit={data.returnSelected(keyOfIngredient)}
+                        state={recipe.state}
+                        selectedUnit={ingredient.returnSelected(recipe.state)}
                     />
                 </td>
                 <td>

@@ -1,29 +1,14 @@
 import React, { useState } from 'react';
 import { useStoreContext } from "../../utils/GlobalState";
-import { CHANGE_GLOBAL_UNIT, CHANGE_GLOBAL_SYSTEM, TOGGLE_AUTO_CONVERT } from '../../utils/actions';
 import './index.css'
+import { Recipe } from '../Recipe/Recipe';
 
-function ToggleMeasure() {
+const ToggleGlobals = ( recipe: Recipe ) => {
     const [ state, dispatch ] = useStoreContext();
 
-    //Each time form is changed, update GlobalState
-    //Weight or Volume
-    function handleUnitChange(event) {
-        const value = event.target.value;
-        dispatch({
-            type: CHANGE_GLOBAL_UNIT,
-            globalUnit: value
-        });
-        console.log(state, value);
-    }
-
-    //Metric or Imperial
-    function handleSystemChange(event) {
-        const value = event.target.value;
-        dispatch({
-            type: CHANGE_GLOBAL_SYSTEM,
-            globalSystem: value
-        }); 
+    const handleChange = (event: React.FormEvent): void =>  {
+        const { value } = event.target as HTMLFormElement;
+        recipe.changeState(value);
     }
 
     return (
@@ -31,12 +16,12 @@ function ToggleMeasure() {
             {/* Measurement Options */}
             <div>
                 {/* system */}
-                <select onChange={handleSystemChange}>
+                <select onChange={handleChange}>
                     <option value="metric">M</option>
                     <option value="us">US</option>
                 </select>
                 {/* type */}
-                <select onChange={handleUnitChange}>
+                <select onChange={handleChange}>
                         <option value="weight">WEIGHT</option>
                         <option value="volume">VOLUME</option>
                 </select>
@@ -49,4 +34,4 @@ function ToggleMeasure() {
     )
 }
 
-export default ToggleMeasure;
+export default ToggleGlobals;

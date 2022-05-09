@@ -25,8 +25,7 @@ Ingredient.init({
     metric_value: DataTypes.FLOAT,
     metric_unit: DataTypes.TEXT,
     us_value: DataTypes.FLOAT,
-    us_unit: DataTypes.TEXT,
-    weight_to_vol: DataTypes.FLOAT
+    us_unit: DataTypes.TEXT
 }, { 
     sequelize, 
     timestamps: false,

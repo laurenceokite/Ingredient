@@ -1,12 +1,3 @@
-import { useStoreContext, GlobalSystems, GlobalUnits } from "../../utils/GlobalState";
-
-type Unit = 
-    'milligrams' | 'grams' | 'kilograms' |
-    'pounds' | 'ounces' |
-    'milliliters' | 'liters' |
-    'cups' | 'quarts' | 'gallons' | 'teaspoons' | 'tablespoons' | 'fluidOunces';
-
-
 interface UnitInterface {
     unit: string; 
     divisor: number;

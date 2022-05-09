@@ -1,69 +1,43 @@
 import React, { useState } from 'react';
-import ToggleMeasure from '../ToggleMeasure';
+import ToggleGlobals from '../ToggleGlobals';
 import RenderIngredient from '../RenderIngredient';
 import UnitSelect from '../UnitSelect';
-import { useStoreContext, GlobalSystems, GlobalUnits, KeyOfIngredient } from "../../utils/GlobalState";
+import { useStoreContext } from "../../utils/GlobalState";
 import { Ingredient, UnitInterface, IngredientDataInterface } from './Ingredient';
-import { EDIT_RECIPE } from '../../utils/actions';
+import { Recipe } from './Recipe';
 import './index.css';
 import { useEffect } from 'react';
 
 const ViewEditRecipe = () => {
     const [ state, dispatch ] = useStoreContext();
 
-    const globalSystem: GlobalSystems = state.globalSystem;
-    const globalUnit: GlobalUnits = state.globalUnit;
+    const [ recipe, setRecipe ] = useState<Recipe>(new Recipe('metric', 'weight', 0))
 
-    //this is the state as a key of Ingredient object
-    const keyOfIngredient: KeyOfIngredient = `${globalSystem}_${globalUnit}`;
+    //using info from our super(null); aka new Ingredient(null); call in Recipe (extends Ingredient)
+    const currentUnits: UnitInterface[] = recipe.returnCurrentUnits(recipe.state);
+    const selectedUnit: UnitInterface = recipe.returnSelected(recipe.state);
 
-    //utilizing 'Ingredient's init values to populate our form <select>
-    const formIngredient = new Ingredient(null);
-
-    const currentUnits: UnitInterface[] = formIngredient.returnCurrentUnits(keyOfIngredient);
-    const selectedUnit: UnitInterface = formIngredient.returnSelected(keyOfIngredient);
+    console.log(currentUnits, recipe.state)
 
     const [formState, setFormState] = useState<IngredientDataInterface>({ 
         name: '',
         value: 0,
         unit: selectedUnit.unit,
-        state: keyOfIngredient
+        state: recipe!.state
     });
-
-    useEffect(() => {
-        setFormState({
-            ...formState,
-            state: keyOfIngredient,
-            unit: selectedUnit.unit
-        })    
-    }, [state]);
 
     const addIngredient = (event: React.FormEvent): void => {
         event.preventDefault();
-
-        console.log(formState);
-
-        const newIngredient = new Ingredient(formState);
         
-        dispatch({
-            type: EDIT_RECIPE,
-            recipeState: {
-                ...state.recipeState,
-                ingredients: [
-                    ...state.recipeState.ingredients, 
-                    newIngredient
-                ]
-            }
-        });
+        setRecipe(recipe.addIngredient(new Ingredient(formState)));
 
         // Reset ingredient input form to original state
         setFormState({
             name: '',
             value: 0,
             unit: selectedUnit.unit,
-            state: keyOfIngredient
+            state: recipe.state
         });
-        console.log(formState);
     };
 
     const handleChange = (event: React.FormEvent): void => {
@@ -78,14 +52,15 @@ const ViewEditRecipe = () => {
     return(
         <div className='viewEditRecipe'>
             {/* Change measurement type here */}
-            <ToggleMeasure/>
+            <ToggleGlobals recipe={recipe} />
 
             {/* Map array of ingredients */}
             <table>
-                {state.recipeState.ingredients.map((ingredient: Ingredient) => (
+                {recipe.ingredients && recipe.ingredients.map((ingredient: Ingredient) => (
                 <RenderIngredient 
                     key={ingredient.name} 
-                    data={ingredient} 
+                    recipe={recipe}
+                    ingredient={ingredient} 
                     currentUnits={currentUnits}
                 />     
                 ))}
@@ -116,8 +91,8 @@ const ViewEditRecipe = () => {
                             <UnitSelect 
                                 currentUnits={currentUnits} 
                                 selectedUnit={selectedUnit}
-                                ingredient={formIngredient}
-                                keyOfIngredient={keyOfIngredient}
+                                ingredient={recipe}
+                                state={recipe.state}
                             />
                         </div>
                     </div> 

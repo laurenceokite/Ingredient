@@ -1,19 +1,19 @@
 import React from "react";
-import { UnitInterface, Ingredient } from "../ViewEditRecipe/Ingredient";
-import { KeyOfIngredient } from "../../utils/GlobalState";
+import { UnitInterface, Ingredient } from "../Recipe/Ingredient";
+import { State } from '../Recipe/Recipe'
 
 interface UnitSelectInterface {
     currentUnits: UnitInterface[];
     selectedUnit: UnitInterface;
     ingredient: Ingredient;
-    keyOfIngredient: KeyOfIngredient;
+    state: State;
 }
 
-const UnitSelect = ({ currentUnits, selectedUnit, ingredient, keyOfIngredient }: UnitSelectInterface) => {
+const UnitSelect = ({ currentUnits, selectedUnit, ingredient, state }: UnitSelectInterface) => {
 
     const handleChangeUnit = (event: React.FormEvent): void => {
         const { value } = event.target as HTMLFormElement;
-        ingredient.updateSelected(keyOfIngredient, value);
+        ingredient.updateSelected(state, value);
     }
     
     return (
