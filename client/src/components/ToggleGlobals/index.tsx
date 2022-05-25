@@ -1,37 +1,46 @@
-import React, { useState } from 'react';
-import { useStoreContext } from "../../utils/GlobalState";
-import './index.css'
+import React from 'react';
+import { observer } from 'mobx-react-lite';
+import { Row, Form } from 'react-bootstrap';
+
 import { Recipe } from '../Recipe/Recipe';
 
-const ToggleGlobals = ( recipe: Recipe ) => {
-    const [ state, dispatch ] = useStoreContext();
+interface IToggleGlobals {
+    recipe: Recipe;
+}
+
+const ToggleGlobals = observer(({ recipe }: IToggleGlobals) => {
+
+    const system = recipe.system;
+    const units = recipe.units;
 
     const handleChange = (event: React.FormEvent): void =>  {
-        const { value } = event.target as HTMLFormElement;
-        recipe.changeState(value);
+        const { value, id } = event.target as HTMLFormElement;
+
+        if (id === 'system') recipe.changeState( value, units );
+
+        if (id === 'units') recipe.changeState( system, value );
     }
 
     return (
-        <form className='toggle-measure'> 
+        <Form as={Row} className='toggle-measure'> 
             {/* Measurement Options */}
-            <div>
+            <Form.Group>
                 {/* system */}
-                <select onChange={handleChange}>
-                    <option value="metric">M</option>
+                <Form.Select id='system' onChange={handleChange}>
+                    <option value="metric">METRIC</option>
                     <option value="us">US</option>
-                </select>
+                </Form.Select>
                 {/* type */}
-                <select onChange={handleChange}>
+                <Form.Select id='units' onChange={handleChange}>
                         <option value="weight">WEIGHT</option>
                         <option value="volume">VOLUME</option>
-                </select>
+                </Form.Select>
+            </Form.Group>
+            <div>
+                <Form.Control type='number' placeholder='1'></Form.Control>
             </div>
-            <div className='edit-percent'>
-                <input type='number' defaultValue={state.recipeState.percent} placeholder='100'></input>
-                <a> X</a>
-            </div>
-        </form>
+        </Form>
     )
-}
+});
 
 export default ToggleGlobals;

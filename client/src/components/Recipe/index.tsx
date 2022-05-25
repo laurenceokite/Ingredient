@@ -1,43 +1,43 @@
 import React, { useState } from 'react';
+import { observer, useLocalObservable } from 'mobx-react-lite';
+import { Container, Form, Table, Stack, Button } from 'react-bootstrap';
+
 import ToggleGlobals from '../ToggleGlobals';
 import RenderIngredient from '../RenderIngredient';
 import UnitSelect from '../UnitSelect';
-import { useStoreContext } from "../../utils/GlobalState";
-import { Ingredient, UnitInterface, IngredientDataInterface } from './Ingredient';
+
+import { Ingredient, IngredientDataInterface } from './Ingredient';
 import { Recipe } from './Recipe';
-import './index.css';
-import { useEffect } from 'react';
 
-const ViewEditRecipe = () => {
-    const [ state, dispatch ] = useStoreContext();
+const DisplayRecipe = observer(() => {
 
-    const [ recipe, setRecipe ] = useState<Recipe>(new Recipe('metric', 'weight', 0))
+    const recipe = useLocalObservable(() => new Recipe('metric', 'weight', 0));
 
-    //using info from our super(null); aka new Ingredient(null); call in Recipe (extends Ingredient)
-    const currentUnits: UnitInterface[] = recipe.returnCurrentUnits(recipe.state);
-    const selectedUnit: UnitInterface = recipe.returnSelected(recipe.state);
+    const { state, data } = recipe;
 
-    console.log(currentUnits, recipe.state)
+    const selectedUnit = data.returnSelected(state).unit;
 
-    const [formState, setFormState] = useState<IngredientDataInterface>({ 
+    //form data is collected in the shape of new Ingredient params
+    const formInitialState = { 
         name: '',
         value: 0,
-        unit: selectedUnit.unit,
-        state: recipe!.state
-    });
+        unit: selectedUnit,
+        state: state
+    }
 
+    //declare form state
+    const [formState, setFormState] = useState<IngredientDataInterface>(formInitialState);
+
+    //add new Ingredient to Recipe object
     const addIngredient = (event: React.FormEvent): void => {
         event.preventDefault();
+
+        formState.unit = selectedUnit;
         
-        setRecipe(recipe.addIngredient(new Ingredient(formState)));
+        recipe.addIngredient(new Ingredient(formState))
 
         // Reset ingredient input form to original state
-        setFormState({
-            name: '',
-            value: 0,
-            unit: selectedUnit.unit,
-            state: recipe.state
-        });
+        setFormState(formInitialState);
     };
 
     const handleChange = (event: React.FormEvent): void => {
@@ -50,59 +50,58 @@ const ViewEditRecipe = () => {
     };
 
     return(
-        <div className='viewEditRecipe'>
+        <Container fluid='md'>
             {/* Change measurement type here */}
-            <ToggleGlobals recipe={recipe} />
+            <ToggleGlobals recipe={recipe}/>
 
             {/* Map array of ingredients */}
-            <table>
-                {recipe.ingredients && recipe.ingredients.map((ingredient: Ingredient) => (
-                <RenderIngredient 
-                    key={ingredient.name} 
-                    recipe={recipe}
-                    ingredient={ingredient} 
-                    currentUnits={currentUnits}
-                />     
-                ))}
-            </table>
+            <Table striped bordered>
+                <tbody>
+                    {recipe.ingredients.map((ingredient: Ingredient) => (
+                    <RenderIngredient 
+                        key={ingredient.name} 
+                        recipe={recipe}
+                        ingredient={ingredient} 
+                    />     
+                    ))}
+                </tbody>
+            </Table>
 
             {/* Ingredient Input */}
-                <form onSubmit={addIngredient}>
-                    <div className='ingredient-input'>
-                        <div>
-                            <input type="text" 
-                                placeholder="Ingredient" 
-                                id='ingredientNameInput'
-                                name='name'
-                                value={formState.name}
-                                autoComplete="off" 
-                                onChange={handleChange}/>
+            <Form onSubmit={addIngredient}>
+                
+                <Form.Group>
+                    <Form.Control type="text" 
+                        placeholder="Ingredient" 
+                        id='ingredientNameInput'
+                        name='name'
+                        value={formState.name}
+                        autoComplete="off" 
+                        onChange={handleChange}/>
 
-                            <input type="number" 
-                                placeholder="Amount"
-                                id='ingredientAmtInput'
-                                name='value'
-                                value={formState.value?formState.value:''}
-                                onChange={handleChange}
-                                autoComplete="off"/>
-                        </div>
+                    <Form.Control type="number" 
+                        placeholder="Amount"
+                        id='ingredientAmtInput'
+                        name='value'
+                        value={formState.value?formState.value:''}
+                        onChange={handleChange}
+                        autoComplete="off"/>
+                </Form.Group>
 
-                        <div id='measurementSelect'>
-                            <UnitSelect 
-                                currentUnits={currentUnits} 
-                                selectedUnit={selectedUnit}
-                                ingredient={recipe}
-                                state={recipe.state}
-                            />
-                        </div>
-                    </div> 
+                <Stack>
+
+                    <UnitSelect 
+                        recipe={recipe}
+                    />
+
                     {/* Add Ingredient Button */}
-                    <input type="submit" value="+"></input>
-                </form>
-        </div>
+                    <Button type="submit">Add Ingredient</Button>
+                </Stack>
+            </Form>
+        </Container>
     )
-};
+});
 
 
 
-export default ViewEditRecipe;
+export default DisplayRecipe;

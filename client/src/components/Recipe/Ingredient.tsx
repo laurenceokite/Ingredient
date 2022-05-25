@@ -1,3 +1,5 @@
+import { makeAutoObservable } from "mobx";
+
 interface UnitInterface {
     unit: string; 
     divisor: number;
@@ -48,12 +50,23 @@ class Ingredient implements IngredientInterface {
 
     name?: string;
 
-    constructor(data: IngredientDataInterface | null) {
+    bakersPercentage?: number;
+
+    standardVolume?: number;
+
+    standardWeight?: number;
+
+    constructor(data?: IngredientDataInterface) {
         if (data) {
             this.name = data.name;
             this.updateValue(data.state, data.unit, data.value);
             this.updateSelected(data.state, data.unit);
+ 
+            //grams/milliliters are our standard values
+            this.standardVolume = this.metric_volume[0].value;//milliliters
+            this.standardWeight = this.metric_weight[1].value;//grams
         }
+        makeAutoObservable(this);
     }
 
     //return relevant units, based on global state 
@@ -71,6 +84,7 @@ class Ingredient implements IngredientInterface {
 
     //changes selected to true on given unit, and all else in array to false
     updateSelected(state: keyof IngredientInterface, unit: string): void {
+
         this[state].forEach(unitData => { 
             if (unitData.unit === unit) {
                 unitData.selected = true;

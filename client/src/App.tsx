@@ -1,14 +1,11 @@
-import { StoreProvider } from './utils/GlobalState';
+import DisplayRecipe from "./components/Recipe";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-import ViewEditRecipe from "./components/Recipe";
+const App = () => {
 
-function App() {
-
-  return (
-    <StoreProvider>
-        <ViewEditRecipe/>
-    </StoreProvider>
-  );
+    return (
+        <DisplayRecipe/>
+    );
 }
 
 export default App;
