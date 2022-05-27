@@ -57,13 +57,7 @@ const DisplayRecipe = observer(() => {
             {/* Map array of ingredients */}
             <Table striped bordered>
                 <tbody>
-                    {recipe.ingredients.map((ingredient: Ingredient) => (
-                    <RenderIngredient 
-                        key={ingredient.name} 
-                        recipe={recipe}
-                        ingredient={ingredient} 
-                    />     
-                    ))}
+                    <RenderIngredient recipe={recipe}/>   
                 </tbody>
             </Table>
 

@@ -1,4 +1,5 @@
 import { makeAutoObservable } from "mobx";
+import { State } from "./Recipe"
 
 interface UnitInterface {
     unit: string; 
@@ -20,6 +21,16 @@ interface IngredientDataInterface {
     value: number;
     unit: string;
     state: keyof IngredientInterface;
+}
+
+interface IStandardValues {
+    weight?: number;
+    volume?: number;
+}
+
+const returnWeightOrVolume = (input: State): keyof IStandardValues => {
+    if (input.includes('volume')) return 'volume';
+    else return 'weight';
 }
 
 class Ingredient implements IngredientInterface {
@@ -48,23 +59,21 @@ class Ingredient implements IngredientInterface {
         { unit: 'fluidOunces', divisor: 29.575, abbrev: 'fl. oz.', selected: false, value: 0 }
     ];
 
+    standard: IStandardValues = {
+        weight: 0,
+        volume: 0
+    };
+
     name?: string;
 
-    bakersPercentage?: number;
-
-    standardVolume?: number;
-
-    standardWeight?: number;
+    recipeIndex?: number;
 
     constructor(data?: IngredientDataInterface) {
+        
         if (data) {
             this.name = data.name;
             this.updateValue(data.state, data.unit, data.value);
             this.updateSelected(data.state, data.unit);
- 
-            //grams/milliliters are our standard values
-            this.standardVolume = this.metric_volume[0].value;//milliliters
-            this.standardWeight = this.metric_weight[1].value;//grams
         }
         makeAutoObservable(this);
     }
@@ -112,14 +121,24 @@ class Ingredient implements IngredientInterface {
         if (state === ('metric_weight' || 'us_weight')) {
             update(this.metric_weight);
             update(this.us_weight);
+
+            const grams = this.metric_weight[1].value;
+
+            this.standard.weight = grams;
+
+            console.log(this.standard.weight);
         }
 
         if (state === ('metric_volume' || 'us_volume')) {
             update(this.metric_volume);
             update(this.us_volume);
+
+            const milliliters = this.metric_volume[0].value;
+
+            this.standard.volume = milliliters;
         }
     }
 };
 
-export { Ingredient, UnitInterface, IngredientInterface, IngredientDataInterface }
+export { Ingredient, UnitInterface, IngredientInterface, IngredientDataInterface, IStandardValues, returnWeightOrVolume }
 

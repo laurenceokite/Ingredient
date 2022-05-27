@@ -1,4 +1,4 @@
-import { Ingredient } from "./Ingredient";
+import { Ingredient, IStandardValues, returnWeightOrVolume } from "./Ingredient";
 import { makeAutoObservable } from 'mobx'
 
 type GlobalSystems = 'metric' | 'us';
@@ -31,16 +31,19 @@ export class Recipe {
         if (ingredients) this.ingredients = ingredients;
     }
 
-    //divide all values by value of anchor ingredient
-    getBakersPercents() {
+    //get bakers percent of ingredient
+    bakersPercent(index: number): number {
         const anchor = this.ingredients[this.anchorIndex];
-        const anchorValue = this.state.includes('weight') ? anchor.standardWeight : anchor.standardVolume;
 
-        for (const ingredient of this.ingredients) {
-            const ingredientValue = this.state.includes('weight') ? ingredient.standardWeight : ingredient.standardVolume;
+        const weightOrVol = returnWeightOrVolume(this.state);
+
+        const anchorValue = anchor.standard[weightOrVol] || 0;
+
+        console.log(anchor.standard[weightOrVol]);
+        
+        const ingredientValue = this.ingredients[index].standard[weightOrVol] || 0;
             
-            ingredient.bakersPercentage = (ingredientValue! / anchorValue!) * 100;
-        }
+        return (ingredientValue / anchorValue) * 100;
     }
 
     //change recipe system and/or unit
@@ -50,14 +53,12 @@ export class Recipe {
         
         this.state = `${this.system}_${this.units}`;
 
-        this.getBakersPercents();
         return this;
     }
 
     addIngredient(ingredient: Ingredient): Recipe {
         this.ingredients.push(ingredient);
 
-        this.getBakersPercents();
         return this;
     }
 }
