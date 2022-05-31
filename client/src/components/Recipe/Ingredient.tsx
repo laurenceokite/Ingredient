@@ -102,15 +102,16 @@ class Ingredient implements IngredientInterface {
         });
     }
     
-    //update all relevant unit values, by giving new value of any unit
+    //update weight or volume values, by giving new value of ANY unit
     updateValue(state: keyof IngredientInterface, unit: string, value: number ): void {
+
         //retrieve index of requested unit
         const unitIndex: number = this[state].findIndex(unitData => unitData.unit === unit);
 
         //get product of value and unit divisor
         const product = this[state][unitIndex].divisor * value;
 
-        //update each state relevant array in Ingredient
+        //update array in Ingredient
         const update = (units: UnitInterface[]) => {
             units.forEach((unitData, index) => {
                 const thisValue = product / unitData.divisor;
@@ -118,27 +119,31 @@ class Ingredient implements IngredientInterface {
             });
         }
 
+        //if unit is weight
         if (state === ('metric_weight' || 'us_weight')) {
             update(this.metric_weight);
             update(this.us_weight);
 
             const grams = this.metric_weight[1].value;
 
+            //update standard weight 
             this.standard.weight = grams;
 
             console.log(this.standard.weight);
         }
 
+        //if unit is volume
         if (state === ('metric_volume' || 'us_volume')) {
             update(this.metric_volume);
             update(this.us_volume);
 
             const milliliters = this.metric_volume[0].value;
 
+            //update standard volume
             this.standard.volume = milliliters;
         }
     }
 };
 
-export { Ingredient, UnitInterface, IngredientInterface, IngredientDataInterface, IStandardValues, returnWeightOrVolume }
+export { Ingredient, UnitInterface, IngredientInterface, IngredientDataInterface, returnWeightOrVolume }
 

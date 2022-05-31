@@ -1,6 +1,6 @@
 import React from "react";
 import { observer } from "mobx-react-lite";
-import { Form, Row, Col } from "react-bootstrap";
+import { Form, Row, Col, Button, Table, Stack } from "react-bootstrap";
 import UnitSelect from "../UnitSelect";
 import { Ingredient } from "../Recipe/Ingredient";
 import { Recipe } from "../Recipe/Recipe";
@@ -22,7 +22,7 @@ const RenderIngredient = observer(({ recipe }: IRecipeProp) => {
     }
 
     
-    const handleChange = (ingredient: Ingredient, name: string) => (event: React.FormEvent): void => {
+    const handleChange = (ingredient: Ingredient, name: string, index: number) => (event: React.FormEvent): void => {
         const { value } = event.target as HTMLFormElement;
 
         const unit = ingredient.returnSelected(recipe.state).unit;
@@ -34,7 +34,10 @@ const RenderIngredient = observer(({ recipe }: IRecipeProp) => {
         if (name === 'unit') ingredient.updateSelected(recipe.state, value);
 
         //update bakers percent
-        if (name === 'percent') {};
+        if (name === 'percent') recipe.bakersPercent(index, value);
+
+        //update anchor index
+        if (name === 'anchor') recipe.anchorIndex = index;
     };
 
     return(
@@ -45,26 +48,25 @@ const RenderIngredient = observer(({ recipe }: IRecipeProp) => {
                     <td>{recipe.ingredients[index].name}</td>
                 </Row>
                 <Row>
-                    <Col xs={9}>
+                    <Col xs={6}>
 
                         <Row>
 
                             {/* render ingredient value */}
-                            <Col xs={8}>
+                            <Col xs={6}>
                                 <Form>
                                     <Form.Control 
                                         type="number" 
                                         placeholder="No Amt." 
                                         value={formatValue(thisValue(index))}
-                                          
-                                        onChange={handleChange(ingredient, 'value')}
+                                        onChange={handleChange(ingredient, 'value', index)}
                                     />
                                 </Form>
                             </Col>
 
                             {/* render UnitSelect */}
-                            <Col>
-                                <div onChange={handleChange(ingredient, 'unit')}>
+                            <Col xs={6}>
+                                <div onChange={handleChange(ingredient, 'unit', index)}>
                                     <UnitSelect 
                                         recipe={recipe}
                                         ingredient={ingredient}
@@ -77,10 +79,26 @@ const RenderIngredient = observer(({ recipe }: IRecipeProp) => {
                     </Col>
 
                     {/* percentage */}
-                    <Col>
-                        <Form.Control type="number" value={recipe.bakersPercent(index)} onChange={handleChange(ingredient, 'percent')}/>
+                    <Col xs={4} sm={3}>
+                       <Stack direction="horizontal">
+                            <Form.Control 
+                            type="number" 
+                            value={formatValue(recipe.bakersPercent(index))} 
+                            onChange={handleChange(ingredient, 'percent', index)}
+                            disabled={recipe.anchorIndex === index}
+                            />
+                            <div>&nbsp;%</div>
+                       </Stack>
                     </Col>
-
+                    <Col xs={1}>
+                        <Button 
+                        variant={recipe.anchorIndex === index ? 'outline-success' : 'outline-secondary'}
+                        size='sm'
+                        onClick={handleChange(ingredient, 'anchor', index)}
+                        >
+                            1:1
+                        </Button>
+                    </Col>
                 </Row>  
             </div>     
             ))} 

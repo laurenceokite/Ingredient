@@ -11,7 +11,7 @@ import { Recipe } from './Recipe';
 
 const DisplayRecipe = observer(() => {
 
-    const recipe = useLocalObservable(() => new Recipe('metric', 'weight', 0));
+    const recipe = useLocalObservable(() => new Recipe('metric', 'weight', 0, 1));
 
     const { state, data } = recipe;
 
@@ -71,15 +71,17 @@ const DisplayRecipe = observer(() => {
                         name='name'
                         value={formState.name}
                         autoComplete="off" 
-                        onChange={handleChange}/>
+                        onChange={handleChange}
+                    />
 
                     <Form.Control type="number" 
                         placeholder="Amount"
                         id='ingredientAmtInput'
                         name='value'
-                        value={formState.value?formState.value:''}
+                        value={formState.value ? formState.value : ''}
                         onChange={handleChange}
-                        autoComplete="off"/>
+                        autoComplete="off"
+                    />
                 </Form.Group>
 
                 <Stack>
