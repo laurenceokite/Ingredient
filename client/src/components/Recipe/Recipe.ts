@@ -29,7 +29,6 @@ export class Recipe {
     ) 
     
     {
-
         this.data = new Ingredient();//unit data, UnitSelect component uses this.
 
         makeAutoObservable(this);//mobx
@@ -61,6 +60,12 @@ export class Recipe {
     // *** ADD INGREDIENT ***
     addIngredient(ingredient: Ingredient): Recipe {
         this.ingredients.push(ingredient);
+        return this;
+    }
+
+    removeIngredient(index: number): Recipe {
+        console.log(index);
+        this.ingredients.splice(index, 1); 
         return this;
     }
 

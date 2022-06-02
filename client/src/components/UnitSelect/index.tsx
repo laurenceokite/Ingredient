@@ -1,15 +1,10 @@
-import { observer } from "mobx-react-lite";
 import React from "react";
+import { observer } from "mobx-react-lite";
 import { Form } from "react-bootstrap";
-import { Ingredient } from "../Recipe/Ingredient";
-import { Recipe } from '../Recipe/Recipe'
 
-interface IUnitSelect {
-    recipe: Recipe,
-    ingredient?: Ingredient
-}
+import { IRecipeComponent } from "../Recipe";
 
-const UnitSelect = observer(({ recipe, ingredient }: IUnitSelect) => {
+const UnitSelect = observer(({ recipe, ingredient }: IRecipeComponent) => {
     //mobx observer needs the whole observed object 
     const { state } = recipe;
 
@@ -26,7 +21,7 @@ const UnitSelect = observer(({ recipe, ingredient }: IUnitSelect) => {
     }
 
     return (
-        <Form.Select name='unit' value={selectedUnit} onChange={handleChangeUnit}>
+        <Form.Select size="sm" name='unit' value={selectedUnit} onChange={handleChangeUnit}>
             {currentUnits.map(unit => (
                 <option key={unit.unit} value={unit.unit}>
                         {unit.abbrev}

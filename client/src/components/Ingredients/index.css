@@ -1,0 +1,39 @@
+/* Remove Arrows from Number Inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.form-select {
+    background-position: right 0.25rem center !important;
+    padding: .25rem !important;
+}
+
+.unit-select {
+    padding-left: 0 !important;
+}
+
+.ingredient-title {
+    padding: .5rem;
+    margin-bottom: .5rem;
+    position: relative;
+    font-weight: bold;
+}
+
+.ingredient-buttons {
+    position: absolute;
+    right: 1rem;
+    top: 0rem;
+}
+
+.anchor-button {
+    padding: .25rem .5rem !important;
+    font-size: .75rem !important;
+    margin-right: .5rem;
+}
+
+.no-ingredients {
+    height: 55vh;
+    
+}

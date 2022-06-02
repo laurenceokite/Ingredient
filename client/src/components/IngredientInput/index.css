@@ -1,0 +1,7 @@
+.ingredient-input-form {
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+    max-width: 700px;
+    padding: 1rem;
+}
